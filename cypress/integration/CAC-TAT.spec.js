@@ -1,18 +1,24 @@
 /// <reference types="Cypress" />
 
 describe('Central de Atendimento CAC TAT', function () {
+    const THREE_SECONDS_IN_MS = 3000
     beforeEach('Verifica o titulo da aplicação', function () {
         cy.visit('src/index.html')
         cy.title().should('be.equal', 'Central de Atendimento ao Cliente TAT')
     })
 
     it('Preenche os campos obrigatórios e envia formulário', function () {
+        cy.clock()
+
         cy.get('#firstName').type('Erisson')
         cy.get('#lastName').type('Batista')
         cy.get('#email').type('a@a.com')
         cy.get('#open-text-area').type('Nada não')
         cy.contains('button', 'Enviar').click()
         cy.get('.success').should('be.visible')
+
+        cy.tick(THREE_SECONDS_IN_MS)
+        cy.get('.success').should('not.be.visible')
     })
 
     it('Exibe mensagem de erro para email inválido', function () {
@@ -53,8 +59,11 @@ describe('Central de Atendimento CAC TAT', function () {
     })
 
     it('Envia o formulario com sucesso usando um comando customizado', function () {
+        cy.clock()
         cy.fillMandatoryFieldsAndSubmit()
         cy.get('.success').should('be.visible')
+        cy.tick(THREE_SECONDS_IN_MS)
+        cy.get('.success').should('not.be.visible')
     })
 
     it('Seleciona um produto (YouTube) por seu texto', function () {
@@ -138,5 +147,22 @@ describe('Central de Atendimento CAC TAT', function () {
             .invoke('removeAttr', 'target')
             .click()
         cy.contains('Talking About Testing').should('be.visible')
+    })
+
+    it('exibe e esconde as mensagens de sucesso e erro usando o .invoke', () => {
+        cy.get('.success')
+            .should('not.be.visible')
+            .invoke('show')
+            .should('be.visible')
+            .and('contain', 'Mensagem enviada com sucesso.')
+            .invoke('hide')
+            .should('not.be.visible')
+        cy.get('.error')
+            .should('not.be.visible')
+            .invoke('show')
+            .should('be.visible')
+            .and('contain', 'Valide os campos obrigatórios!')
+            .invoke('hide')
+            .should('not.be.visible')
     })
 })
